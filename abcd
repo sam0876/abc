@@ -1,3 +1,265 @@
+#Take a quick peek:
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import base64
+import string
+import re
+from collections import Counter
+from nltk.corpus import stopwords
+stopwords = stopwords.words('english')
+import re
+from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import TfidfVectorizer 
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import accuracy_score,confusion_matrix,precision_score,recall_score 
+from nltk.stem.porter import PorterStemmer
+from nltk import word_tokenize   
+from sklearn.naive_bayes import MultinomialNB   
+from sklearn.model_selection import train_test_split
+from sklearn import svm 
+import random
+import numpy as np 
+from sklearn import preprocessing 
+from nltk.corpus import wordnet
+df = pd.read_excel('D:\\ACH\\Ach_data_201812_deposit.xlsx', names= ('number','text'))
+df.head(10)
+df.head(50)
+from wordcloud import WordCloud, STOPWORDS 
+df.isnull().sum()
+df.describe()
+new= df['text'].str.split("-", n=1, expand= True)
+# making separate first name column from new data frame 
+new["Text"]= new[0] 
+
+# making separate last name column from new data frame 
+new["Type"]= new[1]
+# Dropping old Name columns 
+new.drop(columns =[0], inplace = True) 
+# Dropping old Name columns 
+new.drop(columns =[1], inplace = True) 
+
+comment_words = ' '
+stopwords = set(STOPWORDS) 
+
+reader_contents = list(new) 
+
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+
+import matplotlib.pyplot as plt
+
+print("There are {} observations and {} features in this dataset. \n".format(new.shape[0],new.shape[1]))
+
+print("There are {} types of variables type in this dataset such as {}... \n".format(len(new.Type.unique()),
+                                                                           ", ".join(new.Type.unique()[0:5])))
+
+                                                                           In [51]:
+
+
+new[["Type", "Text"]].head()
+# Groupby by country
+Type = new.groupby("Type")
+
+# Summary statistic of all countries
+Type.describe().head()
+
+plt.figure(figsize=(15,10))
+Type.size().sort_values(ascending=False).plot.bar()
+plt.xticks(rotation=50)
+plt.xlabel("Type")
+plt.ylabel("Text")
+plt.show()
+
+type(new)
+
+new["Text"] = new["Text"].map(lambda x: x.lower())
+#print(xLower_Text)
+#print(type(xLower_Text))
+#xLower_Text.head(20)
+
+
+new["Type"] = new["Type"].map(lambda x: x.lower())
+#print(xLower_Text)
+#print(type(xLower_Text))
+#xLower_Text.head(20)
+
+# Groupby by country
+Type = new.groupby("Type")
+
+# Summary statistic of all countries
+Type.describe().head()
+
+new.isnull().sum()
+
+new['wordtype'] = new.Text.str.strip().str.split('[\W_]+')
+new.head()
+
+
+#new['words'].replace(regex=True, inplace=True, to_replace=r'[^0-9.\-]')
+#new['words'] = new['words'].replace({';':''}, regex=True)
+new['Text'] = new.Text.str.replace('\d+', '')
+new['Type'] = new.Type.str.replace('\d+', '')
+word= new[['Text', 'Type']]
+word.head(40)
+#import re
+#line = re.sub('[!@#$]', '', word)
+
+
+word=word.replace('\(;','',regex=True)
+word=word.replace('\-','',regex=True)
+
+word.head(40)
+
+# word[]= word['Text'].replace(regex=True, inplace=True, to_replace=r'[^0-9.\-]')
+#df['A1'] = df['A1']
+word.replace(regex=True, inplace=True, to_replace=r'[^^(?=.*\d)(?=.*[A-Za-z])[A-Za-z0-9]{1,10}$$ ((;;]')
+
+word.head(50)
+
+word.Text=word.Text.str.replace(';','')
+
+word.Text=word.Text.str.replace('(','')
+
+word.Text=word.Text.str.replace('#','')
+
+def lemmatize(word):
+    lemmatizer = nltk.stem.WordNetLemmatizer()
+    lemmatized = word['tokenized'].apply(
+            lambda row: list(list(map(lemmatizer.lemmatize,y)) for y in row))
+    return lemmatized
+
+
+# new data frame with split value columns 
+new = word["Type"].str.split(" ", n = 3, expand = True) 
+
+
+# making separate first name column from new data frame 
+word["Type1"]= new[1] 
+word["Type2"]= new[2] 
+# Dropping old Name columns 
+word.drop(columns =["Type"], inplace = True) 
+
+# df display 
+word 
+
+
+
+# making separate last name column from new data frame 
+word["Type2"]= new[2] 
+
+
+# Dropping old Name columns 
+word.drop(columns =["Type"], inplace = True) 
+
+# df display 
+word 
+
+
+# replace the matching strings 
+word.Type1 = word.Type1.replace(to_replace ='bill.com', value = 'online', regex = True)
+word.Type1 = word.Type1.replace(to_replace ='payrll', value = 'payroll', regex = True)  
+
+word.Type1 = word.Type1.replace(to_replace ='pp', value = 'p2p', regex = True) 
+
+# Groupby by country
+Type = word.groupby("Type1")
+
+# Summary statistic of all countries
+Type.describe().head()
+
+plt.figure(figsize=(15,10))
+Type.size().sort_values(ascending=False).plot.bar()
+plt.xticks(rotation=50)
+plt.xlabel("Type1")
+plt.ylabel("Text")
+plt.show()
+
+
+from fuzzywuzzy import process
+input_dictionary= {"payment", "salary", "credit", "transaction","transfer","deposit","payroll", "p2p"}
+
+def replacement_function(input_string, input_dictionary, threshold):
+
+    best_guess = process.extractOne(input_string, input_dictionary)
+    if best_guess[1] > threshold:
+         input_string = best_guess[0]
+         #print(best_guess)
+    return input_string  
+
+word['Type1'] = word['Type1'].apply(lambda x: ' '.join([replacement_function(word,input_dictionary,75) for word in x.split()]))
+
+#################
+#df2 = df['Text']
+
+
+from collections import Counter
+a=Counter(" ".join(word["Type1"]).split()).most_common(11)
+
+from collections import Counter
+Counter(" ".join(word["Type1"]).split()).most_common(11)
+
+l = []
+for i in a:
+    l.append(i[0])
+
+
+
+new=word.loc[word['Type1'].isin(l)]
+
+
+
+# Groupby by country
+Type1 = new.groupby("Type1")
+
+# Summary statistic of all countries
+Type1.describe().head()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 plt.figure(figsize=(15,10))
 Type1.size().sort_values(ascending=False).plot.bar()
 plt.xticks(rotation=50)
