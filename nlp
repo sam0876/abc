@@ -1,0 +1,1350 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[2]:
+
+
+#Take a quick peek:
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import base64
+import string
+import re
+from collections import Counter
+from nltk.corpus import stopwords
+stopwords = stopwords.words('english')
+
+
+# In[3]:
+
+
+import re
+from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import TfidfVectorizer 
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import accuracy_score,confusion_matrix,precision_score,recall_score 
+from nltk.stem.porter import PorterStemmer
+from nltk import word_tokenize   
+from sklearn.naive_bayes import MultinomialNB         
+
+
+# In[4]:
+
+
+from sklearn.model_selection import train_test_split
+from sklearn import svm 
+import random
+import numpy as np 
+from sklearn import preprocessing 
+from nltk.corpus import wordnet
+
+
+# In[26]:
+
+
+df = pd.read_excel('D:\\ACH\\ACH_data_201812_deposit.xlsx', names= ('number','Text'))
+
+
+
+# In[27]:
+
+
+df.head(50)
+
+
+# In[28]:
+
+
+df.tail(50)
+
+
+# In[29]:
+
+
+from wordcloud import WordCloud, STOPWORDS 
+
+
+# In[30]:
+
+
+df.isnull().sum()
+
+
+# In[31]:
+
+
+df.describe()
+
+
+# In[32]:
+
+
+#new['words'].replace(regex=True, inplace=True, to_replace=r'[^0-9.\-]')
+#new['words'] = new['words'].replace({';':''}, regex=True)
+#df['EXTRTXNDESCTEXT'] = df.EXTRTXNDESCTEXT.str.replace('\d+', '')
+#df['EXTRTXNDESCTEXT'] = df.Type.str.replace('\d+', '')
+#withdrawal= df[['EXTRTXNDESCTEXT']]
+#withdrawal.head(40)
+#import re
+#line = re.sub('[!@#$]', '', word)
+
+
+#word=word.replace('\(;','',regex=True)
+#word=word.replace('\-','',regex=True)
+
+#word.head(40)
+
+
+# In[34]:
+
+
+new= df['Text'].str.split("-", n=1, expand= True)
+
+
+# In[14]:
+
+
+print(new.head())
+
+
+# In[36]:
+
+
+# making separate first name column from new data frame 
+new["Text"]= new[0] 
+  
+
+
+# In[37]:
+
+
+
+# making separate last name column from new data frame 
+new["Type"]= new[1]
+
+
+# In[38]:
+
+
+print(new.head())
+
+
+# In[39]:
+
+
+# Dropping old Name columns 
+new.drop(columns =[0], inplace = True) 
+
+
+# In[26]:
+
+
+# Dropping old Name columns 
+new.drop(columns =[1], inplace = True) 
+
+
+# In[27]:
+
+
+new.head()
+
+
+# In[28]:
+
+
+comment_words = ' '
+stopwords = set(STOPWORDS) 
+
+
+# In[29]:
+
+
+reader_contents = list(new) 
+
+
+# In[30]:
+
+
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+
+import matplotlib.pyplot as plt
+
+
+# In[31]:
+
+
+print("There are {} observations and {} features in this dataset. \n".format(new.shape[0],new.shape[1]))
+
+print("There are {} types of variables type in this dataset such as {}... \n".format(len(new.Type.unique()),
+                                                                           ", ".join(new.Type.unique()[0:5])))
+
+
+# In[32]:
+
+
+new[["Type", "Text"]].head()
+
+
+# In[33]:
+
+
+# Groupby by country
+Type = new.groupby("Type")
+
+# Summary statistic of all countries
+Type.describe().head()
+
+
+# In[53]:
+
+
+plt.figure(figsize=(15,10))
+Type.size().sort_values(ascending=False).plot.bar()
+plt.xticks(rotation=50)
+plt.xlabel("Type")
+plt.ylabel("Text")
+plt.show()
+
+
+# In[54]:
+
+
+type(new)
+
+
+# In[55]:
+
+
+new["Text"] = new["Text"].map(lambda x: x.lower())
+#print(xLower_Text)
+#print(type(xLower_Text))
+#xLower_Text.head(20)
+
+
+# In[56]:
+
+
+new["Type"] = new["Type"].map(lambda x: x.lower())
+#print(xLower_Text)
+#print(type(xLower_Text))
+#xLower_Text.head(20)
+
+
+# In[57]:
+
+
+# Groupby by country
+Type = new.groupby("Type")
+
+# Summary statistic of all countries
+Type.describe().head()
+
+
+# In[58]:
+
+
+new.isnull().sum()
+
+
+# In[59]:
+
+
+#new['New'] = new[['Text', 'Type']].apply(lambda x: '-'.join(x), axis=1)
+#new.head()
+
+
+# In[32]:
+
+
+new.head()
+
+
+# In[33]:
+
+
+#new['Text'] = new.Text.str.strip().str.split('[^0-9.\-]+')
+new.head(40)
+
+
+# In[34]:
+
+
+new['wordtype'] = new.Text.str.strip().str.split('[\W_]+')
+new.head()
+
+
+# In[35]:
+
+
+#new['words'].replace(regex=True, inplace=True, to_replace=r'[^0-9.\-]')
+#new['words'] = new['words'].replace({';':''}, regex=True)
+new['Text'] = new.Text.str.replace('\d+', '')
+new['Type'] = new.Type.str.replace('\d+', '')
+word= new[['Text', 'Type']]
+word.head(40)
+#import re
+#line = re.sub('[!@#$]', '', word)
+
+
+word=word.replace('\(;','',regex=True)
+word=word.replace('\-','',regex=True)
+
+word.head(40)
+
+
+# In[36]:
+
+
+# word[]= word['Text'].replace(regex=True, inplace=True, to_replace=r'[^0-9.\-]')
+#df['A1'] = df['A1']
+word.replace(regex=True, inplace=True, to_replace=r'[^^(?=.*\d)(?=.*[A-Za-z])[A-Za-z0-9]{1,10}$$ ((;;]')
+
+word.head(50)
+
+
+# In[37]:
+
+
+word.Text=word.Text.str.replace(';','')
+
+
+# In[38]:
+
+
+word.Text=word.Text.str.replace('(','')
+
+
+# In[39]:
+
+
+word.Text=word.Text.str.replace('#','')
+
+
+# In[40]:
+
+
+word.Text=word.Text.str.replace('x','')
+
+
+# In[41]:
+
+
+word.head(40)
+
+
+# In[42]:
+
+
+word.tail(40)
+
+
+# In[43]:
+
+
+word.to_csv("sameer.csv", sep='\t')
+
+
+# In[44]:
+
+
+word.tail(20)
+
+
+# In[45]:
+
+
+def lemmatize(word):
+    lemmatizer = nltk.stem.WordNetLemmatizer()
+    lemmatized = word['tokenized'].apply(
+            lambda row: list(list(map(lemmatizer.lemmatize,y)) for y in row))
+    return lemmatized
+
+
+# In[46]:
+
+
+word.tail(40)
+
+
+# In[47]:
+
+
+# new data frame with split value columns 
+new = word["Type"].str.split(" ", n = 3, expand = True) 
+
+
+# In[48]:
+
+
+new.tail(40)
+
+
+# In[49]:
+
+
+
+# making separate first name column from new data frame 
+word["Type1"]= new[1] 
+word["Type2"]= new[2] 
+# Dropping old Name columns 
+word.drop(columns =["Type"], inplace = True) 
+
+# df display 
+word 
+
+
+
+# In[50]:
+
+
+# making separate last name column from new data frame 
+word["Type2"]= new[2] 
+  
+
+
+# In[51]:
+
+
+# Dropping old Name columns 
+word.drop(columns =["Type"], inplace = True) 
+  
+# df display 
+word 
+
+
+# In[52]:
+
+
+word.tail(60)
+
+
+# In[53]:
+
+
+# replace the matching strings 
+word.Type1 = word.Type1.replace(to_replace ='bill.com', value = 'online', regex = True) 
+
+
+# In[54]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='payrll', value = 'payroll', regex = True) 
+
+
+# In[55]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='pp', value = 'p2p', regex = True) 
+
+
+# In[56]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='merch', value = 'merchant', regex = True) 
+
+
+# In[57]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='diredep', value = 'deposit', regex = True) 
+
+
+# In[58]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='reg', value = 'salary', regex = True) 
+
+
+# In[59]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='dir', value = 'deposit', regex = True) 
+
+
+# In[60]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='trnsfr', value = 'transfer', regex = True) 
+
+
+# In[61]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='annty', value = 'payment', regex = True) 
+
+
+# In[62]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='ext', value = 'transfer', regex = True) 
+
+
+# In[63]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='south', value = 'deposit', regex = True)
+
+
+# In[64]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='pr', value = 'payment', regex = True)
+
+
+# In[65]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='salary', value = 'payroll', regex = True)
+
+
+# In[66]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='dda', value = 'deposit', regex = True)
+
+
+# In[67]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='amazon', value = 'online', regex = True)
+
+
+# In[68]:
+
+
+word.Type1 = word.Type1.replace(to_replace ='remotedep', value = 'deposit', regex = True)
+
+
+# In[69]:
+
+
+# Groupby by country
+Type = word.groupby("Type1")
+
+# Summary statistic of all countries
+Type.describe().head()
+
+
+# In[70]:
+
+
+plt.figure(figsize=(15,10))
+Type.size().sort_values(ascending=False).plot.bar()
+plt.xticks(rotation=50)
+plt.xlabel("Type1")
+plt.ylabel("Text")
+plt.show()
+
+
+# In[71]:
+
+
+from fuzzywuzzy import process
+input_dictionary= {"payment", "salary", "credit", "transaction","transfer","deposit","payroll", "p2p"}
+
+def replacement_function(input_string, input_dictionary, threshold):
+    
+    best_guess = process.extractOne(input_string, input_dictionary)
+    if best_guess[1] > threshold:
+         input_string = best_guess[0]
+         #print(best_guess)
+    return input_string  
+
+word['Type1'] = word['Type1'].apply(lambda x: ' '.join([replacement_function(word,input_dictionary,75) for word in x.split()]))
+
+#################
+#df2 = df['Text']
+
+
+# In[72]:
+
+
+word
+
+
+# In[73]:
+
+
+word.tail(60)
+
+
+# In[74]:
+
+
+del word['Type2']
+
+
+# In[75]:
+
+
+
+from collections import Counter
+a=Counter(" ".join(word["Type1"]).split()).most_common(11)
+
+
+# In[76]:
+
+
+from collections import Counter
+Counter(" ".join(word["Type1"]).split()).most_common(11)
+
+
+# In[77]:
+
+
+l = []
+for i in a:
+    l.append(i[0])
+
+
+# In[78]:
+
+
+
+new=word.loc[word['Type1'].isin(l)]
+
+
+# In[79]:
+
+
+new.tail(60)
+
+
+# In[80]:
+
+
+# Groupby by country
+Type1 = new.groupby("Type1")
+
+# Summary statistic of all countries
+Type1.describe().head()
+
+
+# In[81]:
+
+
+plt.figure(figsize=(15,10))
+Type1.size().sort_values(ascending=False).plot.bar()
+plt.xticks(rotation=50)
+plt.xlabel("Type1")
+plt.ylabel("Text")
+plt.show()
+
+
+# In[82]:
+
+
+new.isnull().sum()
+
+
+# In[96]:
+
+
+t_nlp= new
+
+
+# In[97]:
+
+
+t_nlp.head(60)
+
+
+# In[124]:
+
+
+t_nlp.Text.replace(regex=True, inplace=True, to_replace=r'[^^(?=.*\d$&)(?=.*[A-Za-z])[A-Za-z0-9]{1,10}$$ ((;;].$& //')
+
+t_nlp.head(50)
+
+
+# In[125]:
+
+
+#word.Text=word.Text.str.replace('and','-')
+
+
+# In[126]:
+
+
+t_nlp.Text=t_nlp.Text.str.replace('.','')
+
+
+# In[127]:
+
+
+t_nlp.Text=t_nlp.Text.str.replace('/',' ')
+
+
+# In[129]:
+
+
+t_nlp.tail(60)
+
+
+# In[ ]:
+
+
+# new data frame with split value columns 
+new_t = t_nlp["Text"].str.split(" ", n = 3, expand = True) 
+
+
+# In[ ]:
+
+
+# making separate first name column from new data frame 
+word["Type1"]= new[1] 
+word["Type2"]= new[2] 
+# Dropping old Name columns 
+word.drop(columns =["Type"], inplace = True) 
+  
+# df display 
+word 
+  
+
+
+# In[98]:
+
+
+from sklearn.model_selection import train_test_split
+train, test = train_test_split(t_nlp, test_size=0.33, random_state=42)
+
+
+# In[99]:
+
+
+print('Type of Text:', train['Text'].iloc[0])
+print('Type of Ach:', train['Type1'].iloc[0])
+print('Training Data Shape:', train.shape)
+print('Testing Data Shape:', test.shape)
+
+
+# In[107]:
+
+
+import spacy
+nlp = spacy.load('en_core_web_sm')
+punctuations = string.punctuation
+def cleanup_text(docs, logging=False):
+    texts = []
+    counter = 1
+    for doc in docs:
+        if counter % 1000 == 0 and logging:
+            print("Processed %d out of %d documents." % (counter, len(docs)))
+        counter += 1
+        doc = nlp(doc, disable=['parser', 'ner'])
+        tokens = [tok.lemma_.lower().strip() for tok in doc if tok.lemma_ != ' ']
+        tokens = [tok for tok in tokens if tok not in stopwords and tok not in punctuations]
+        tokens = ' '.join(tokens)
+        texts.append(tokens)
+    return pd.Series(texts)
+INFO_text = [text for text in train[train['Type1'] == 'deposit']['Text']]
+IS_text = [text for text in train[train['Type1'] == 'payroll']['Text']]
+INFO_clean = cleanup_text(INFO_text)
+INFO_clean = ' '.join(INFO_clean).split()
+IS_clean = cleanup_text(IS_text)
+IS_clean = ' '.join(IS_clean).split()
+INFO_counts = Counter(INFO_clean)
+IS_counts = Counter(IS_clean)
+INFO_common_words = [word[0] for word in INFO_counts.most_common(20)]
+INFO_common_counts = [word[1] for word in INFO_counts.most_common(20)]
+fig = plt.figure(figsize=(18,6))
+sns.barplot(x=INFO_common_words, y=INFO_common_counts)
+plt.title('Most Common Words used in the deposit')
+plt.show()
+
+
+# In[124]:
+
+
+import spacy
+nlp = spacy.load('en_core_web_sm')
+punctuations = string.punctuation
+def cleanup_text(docs, logging=False):
+    texts = []
+    counter = 1
+    for doc in docs:
+        if counter % 1000 == 0 and logging:
+            print("Processed %d out of %d documents." % (counter, len(docs)))
+        counter += 1
+        doc = nlp(doc, disable=['parser', 'ner'])
+        tokens = [tok.lemma_.lower().strip() for tok in doc if tok.lemma_ != '-PRON-']
+        tokens = [tok for tok in tokens if tok not in stopwords and tok not in punctuations]
+        tokens = ' '.join(tokens)
+        texts.append(tokens)
+    return pd.Series(texts)
+IS_text = [text for text in train[train['Type1'] == 'payroll']['Text']]
+IS_clean = cleanup_text(IS_text)
+IS_clean = ' '.join(IS_clean).split()
+IS_counts = Counter(IS_clean)
+IS_common_words = [word[0] for word in IS_counts.most_common(20)]
+IS_common_counts = [word[1] for word in IS_counts.most_common(20)]
+fig = plt.figure(figsize=(18,6))
+sns.barplot(x=IS_common_words, y=IS_common_counts)
+plt.title('Most Common Words in Payroll')
+plt.show()
+
+
+# In[130]:
+
+
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.base import TransformerMixin
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
+from sklearn.feature_extraction.stop_words import ENGLISH_STOP_WORDS
+from sklearn.metrics import accuracy_score
+from nltk.corpus import stopwords
+import string
+import re
+import spacy
+spacy.load("en_core_web_sm")
+from spacy.lang.en import English
+parser = English()
+
+
+# In[131]:
+
+
+STOPLIST = set(stopwords.words('english') + list(ENGLISH_STOP_WORDS))
+SYMBOLS = " ".join(string.punctuation).split(" ") + ["-", "...", "”", "”"]
+class CleanTextTransformer(TransformerMixin):
+   def transform(self, X, **transform_params):
+        return [cleanText(text) for text in X]
+   def fit(self, X, y=None, **fit_params):
+        return self
+def get_params(self, deep=True):
+        return {}
+    
+def cleanText(text):
+    text = text.strip().replace("\n", " ").replace("\r", " ")
+    text = text.lower()
+    return text
+def tokenizeText(sample):
+    tokens = parser(sample)
+    lemmas = []
+    for tok in tokens:
+        lemmas.append(tok.lemma_.lower().strip() if tok.lemma_ != "-PRON-" else tok.lower_)
+    tokens = lemmas
+    tokens = [tok for tok in tokens if tok not in STOPLIST]
+    tokens = [tok for tok in tokens if tok not in SYMBOLS]
+    return tokens
+
+
+# In[132]:
+
+
+def printNMostInformative(vectorizer, clf, N):
+    feature_names = vectorizer.get_feature_names()
+    coefs_with_fns = sorted(zip(clf.coef_[0], feature_names))
+    topClass1 = coefs_with_fns[:N]
+    topClass2 = coefs_with_fns[:-(N + 1):-1]
+    print("Class 1 best: ")
+    for feat in topClass1:
+        print(feat)
+    print("Class 2 best: ")
+    for feat in topClass2:
+        print(feat)
+vectorizer = CountVectorizer(tokenizer=tokenizeText, ngram_range=(1,1))
+clf = LinearSVC()
+
+pipe = Pipeline([('cleanText', CleanTextTransformer()), ('vectorizer', vectorizer), ('clf', clf)])
+# data
+train1 = train['Text'].tolist()
+labelsTrain1 = train['Type1'].tolist()
+test1 = test['Text'].tolist()
+labelsTest1 = test['Type1'].tolist()
+# train
+pipe.fit(train1, labelsTrain1)
+# test
+preds = pipe.predict(test1)
+print("accuracy:", accuracy_score(labelsTest1, preds))
+print("Top 10 features used to predict: ")
+
+printNMostInformative(vectorizer, clf, 10)
+pipe = Pipeline([('cleanText', CleanTextTransformer()), ('vectorizer', vectorizer)])
+transform = pipe.fit_transform(train1, labelsTrain1)
+vocab = vectorizer.get_feature_names()
+for i in range(len(train1)):
+    s = ""
+    indexIntoVocab = transform.indices[transform.indptr[i]:transform.indptr[i+1]]
+    numOccurences = transform.data[transform.indptr[i]:transform.indptr[i+1]]
+    for idx, num in zip(indexIntoVocab, numOccurences):
+        s += str((vocab[idx], num))
+
+
+# In[137]:
+
+
+from sklearn import metrics
+print(metrics.classification_report(labelsTest1, preds, 
+                                    target_names=new['Type1'].unique()))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[301]:
+
+
+df2.head()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[290]:
+
+
+df2
+
+
+# In[291]:
+
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+from sklearn.metrics import adjusted_rand_score
+from sklearn.feature_extraction.text import CountVectorizer
+
+
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(df2)
+
+print(vectorizer.vocabulary_)
+
+print(X)
+
+true_k = 10
+model = KMeans(n_clusters=true_k, init='k-means++', max_iter=100, n_init=1)
+model.fit(X)
+
+
+# In[295]:
+
+
+print("Top terms per cluster:")
+order_centroids = model.cluster_centers_.argsort()[:, ::-1]
+terms = vectorizer.get_feature_names()
+for i in range(true_k):
+    print("Cluster %d:" % i),
+    for ind in order_centroids[i, :5]:
+        print(' %s' % terms[ind]),
+    print
+
+print("\n")
+
+#################
+
+cluster_map = pd.DataFrame()
+cluster_map['data_index'] = df2.index.values
+cluster_map['cluster'] = model.labels_
+
+#Analysis of the cluster dataframe
+
+print(cluster_map)
+
+
+# In[2]:
+
+
+cluster_map['Text'] = df['Text']
+cluster_map['Text_1'] = df['Text_1']
+
+print(cluster_map)
+
+
+# In[48]:
+
+
+type2["Type2"]= type2[2] 
+
+
+# In[49]:
+
+
+type2.drop(columns =['Type1'], inplace = True) 
+
+
+# In[50]:
+
+
+type2.tail(40)
+
+
+# In[239]:
+
+
+new_text= pd.concat(Text1, type2)
+
+
+# In[ ]:
+
+
+from fuzzywuzzy import process
+input_dictionary= {"Payment", "Salary", "Credit", "Transaction","transfer","deposit","payroll"}
+
+def replacement_function(input_string, input_dictionary, threshold):
+    
+    best_guess = process.extractOne(input_string, input_dictionary)
+    if best_guess[1] > threshold:
+         input_string = best_guess[0]
+         #print(best_guess)
+    return input_string  
+
+df['text_1'] = df['text'].apply(lambda x: ' '.join([replacement_function(word,input_dictionary,75) for word in x.split()]))
+
+#################
+df2 = df['text']
+
+
+# In[39]:
+
+
+plt.figure(figsize=(15,10))
+Type.size().sort_values(ascending=False).plot.bar()
+plt.xticks(rotation=50)
+plt.xlabel("Type")
+plt.ylabel("Text")
+plt.show()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+df_updated = df.replace(to_replace ='[nN]ew', value = 'New_', regex = True) 
+
+
+# In[ ]:
+
+
+
+
+
+# In[546]:
+
+
+rows = list()
+for row in new[['Type', 'words']].iterrows():
+    r = row[1]
+    for word in r.words:
+        rows.append((r.Type, word))
+
+Ana_Ach = pd.DataFrame(rows, columns=['Type', 'Word'])
+Ana_Ach.head()
+
+
+# In[547]:
+
+
+Ana_Ach= Ana_Ach[Ana_Ach.Word.str.len() > 0]
+Ana_Ach.head()
+
+
+# In[512]:
+
+
+Ana_Ach['Word'] = Ana_Ach.Word.str.lower()
+Ana_Ach.head()
+
+
+# In[513]:
+
+
+counts = Ana_Ach.groupby('Type')    .Word.value_counts()    .to_frame()    .rename(columns={'Word':'n_w'})
+counts.head()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[233]:
+
+
+from sklearn.model_selection import train_test_split
+train, test = train_test_split(new, test_size=0.40, random_state=42)
+
+
+# In[234]:
+
+
+print(new.iloc[0])
+
+
+# In[235]:
+
+
+print('Text:', train['Text'].iloc[0])
+
+
+# In[236]:
+
+
+print('Type:', train['Type'].iloc[0])
+
+
+# In[238]:
+
+
+print('Training :', train.shape)
+print('Testing:', test.shape)
+
+
+# In[83]:
+
+
+word['freq'] = word.groupby('Type')['Type'].transform('count')
+word.head()
+
+
+# In[164]:
+
+
+
+
+
+# In[240]:
+
+
+fig = plt.figure(figsize=(40,5))
+sns.barplot(x = train['Type'].unique(), y=train['Type'].value_counts())
+plt.show()
+
+
+# In[241]:
+
+
+fig = plt.figure(figsize=(50,4))
+sns.barplot(x = train['Text'].unique(), y=train['Text'].value_counts())
+plt.show()
+
+
+# In[242]:
+
+
+
+import en_core_web_sm
+nlp = en_core_web_sm.load()
+punctuations = string.punctuation
+def cleanup_text(docs, logging=False):
+    texts = []
+    counter = 1
+    for doc in docs:
+        if counter % 1000 == 0 and logging:
+            print("Processed %d out of %d documents." % (counter, len(docs)))
+        counter += 1
+        doc = nlp(doc, disable=['parser', 'ner'])
+        tokens = [tok.lemma_.lower().strip() for tok in doc if tok.lemma_ != '-PRON-']
+        tokens = [tok for tok in tokens if tok not in stopwords and tok not in punctuations]
+        tokens = ' '.join(tokens)
+        texts.append(tokens)
+    return pd.Series(texts)
+
+
+# In[243]:
+
+
+Pyroll_text = [Text for Text in train[train['Type'] == 'payroll']['Text']]
+
+Pyroll_clean = cleanup_text(Pyroll_text)
+Pyroll_clean = ''.join(Pyroll_clean).split()
+Pyroll_counts = Counter(Pyroll_clean)
+Pyroll_common_words = [word[0] for word in Pyroll_counts.most_common(20)]
+Pyroll_common_counts = [word[1] for word in Pyroll_counts.most_common(20)]
+fig = plt.figure(figsize=(18,6))
+sns.barplot(x=Pyroll_common_words, y=Pyroll_common_counts)
+plt.title('Most Common Words in ACH')
+plt.show()
+
+
+# In[249]:
+
+
+from fuzzywuzzy import process
+input_dictionary= {"Payment", "Salary", "Credit", "Transaction","transfer","deposit","payroll"}
+
+
+# In[251]:
+
+
+def replacement_function(input_string, input_dictionary, threshold):
+    
+    best_guess = process.extractOne(input_string, input_dictionary)
+    if best_guess[1] > threshold:
+         input_string = best_guess[0]
+    return input_string  
+
+df['Text_1'] = df['text'].apply(lambda x: ' '.join([replacement_function(word,input_dictionary,75) for word in x.split()]))
+
+
+# In[252]:
+
+
+df['Text_1']
+
+
+# In[253]:
+
+
+df2 = df['text']
+
